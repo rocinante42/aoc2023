@@ -1,14 +1,59 @@
-use itertools::Itertools;
-use std::cmp::Reverse;
+use color_eyre::{self, owo_colors::OwoColorize};
+use std::time::Instant;
 
-fn main() {
-    let answer = include_str!("input.txt")
+// my original solution but it happens to be a better one
+fn _main2() -> color_eyre::Result<()> {
+    // just for testing execution time
+    let start = Instant::now();
+
+    // start of program
+    let sum: u32 = include_str!("input.txt")
         .lines()
-        .map(|v| v.parse::<u64>().ok())
-        .batching(|it| it.map_while(|x| x).sum1::<u64>())
-        .map(Reverse)
-        .k_smallest(3)
-        .map(|x| x.0)
-        .sum::<u64>();
-    println!("{answer:?}");
+        .collect::<Vec<_>>()
+        .iter()
+        .map(|text_input| -> u32 {
+            // lets iterate on the str as bytes
+            // I could collect the number into a vector
+            let mut numbers: Vec<u32> = vec![];
+
+            for c in text_input.chars() {
+                match c.is_numeric() {
+                    true => numbers.push(c.to_digit(10).unwrap()),
+                    false => {}
+                }
+            }
+            format!("{}{}", numbers.first().unwrap(), numbers.last().unwrap())
+                .parse::<u32>()
+                .unwrap()
+        })
+        .sum();
+    println!("sum is: {}", sum);
+
+    // end of program
+    let duration = start.elapsed();
+    println!("Time elapsed in main() is: {:?}", duration);
+    Ok(())
+}
+
+fn main() -> color_eyre::Result<()> {
+    // just for testing execution time
+    let start = Instant::now();
+
+    // start of program
+    //
+    let sum: u32 = include_str!("input.txt")
+        .lines()
+        .filter_map(|line| {
+            let mut nums = line.chars().filter_map(|ch| ch.to_digit(10));
+            let first = nums.next();
+            let last = nums.next_back().or(first);
+            Some((first.unwrap_or(0) * 10) + last.unwrap_or(0))
+        })
+        .sum();
+    println!("sum is: {}", sum);
+    // end of program
+    let duration = start.elapsed();
+    println!("Time elapsed in main() is: {:?}", duration);
+
+    Ok(())
 }
